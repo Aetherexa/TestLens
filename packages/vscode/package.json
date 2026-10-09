@@ -61,7 +61,7 @@
     "build": "node build.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "vscode:prepublish": "pnpm build",
-    "package:vsix": "pnpm build && vsce package --no-dependencies --out ../../artifacts/testlens-0.1.0.vsix"
+    "package:vsix": "pnpm build && node -e \"require('node:fs').mkdirSync('../../artifacts',{recursive:true})\" && vsce package --no-dependencies --out ../../artifacts/testlens-0.1.0.vsix"
   },
   "devDependencies": {
     "@aetherexa/testlens-core": "workspace:*",
@@ -70,5 +70,9 @@
     "esbuild": "^0.25.9",
     "@vscode/vsce": "^4.0.0",
     "typescript": "^5.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aetherexa/TestLens.git"
   }
 }
