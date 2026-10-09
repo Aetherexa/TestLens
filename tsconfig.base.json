@@ -10,7 +10,6 @@
     "types": [
       "node",
       "vscode"
-    ],
-    "allowImportingTsExtensions": true
+    ]
   }
 }
