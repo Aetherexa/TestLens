@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {readFile} from 'node:fs/promises';
-import {analyzeGaps,detectFramework,parseIstanbul,parseLcov,parseUnifiedDiff,mapTestDependencies,type Finding,type SuggestedTest} from '../../../packages/core/src/index.js';
+import {analyzeGaps,detectFramework,parseIstanbul,parseLcov,parseUnifiedDiff,mapTestDependencies,type Finding,type SuggestedTest} from '../../../core/src/index.js';
 const execFileAsync=promisify(execFile);
 interface ViewItem {label:string;detail:string;file?:string;line?:number;context?:string;}
 class GapProvider implements vscode.TreeDataProvider<ViewItem> {

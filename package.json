@@ -1,1 +1,26 @@
-{"name":"@aetherexa/testlens-workspace","version":"0.1.0","private":true,"type":"module","engines":{"node":">=22.6"},"scripts":{"test":"node --experimental-strip-types --test tests/*.test.ts","check":"npm run test && npm run typecheck","typecheck":"tsc --noEmit","build":"esbuild apps/vscode-extension/src/extension.ts --bundle --platform=node --target=node22 --format=cjs --external:vscode --outfile=apps/vscode-extension/out/extension.cjs","coverage":"node --experimental-strip-types --experimental-test-coverage --test tests/*.test.ts","package:vsix":"npm run build && cd apps/vscode-extension && npx @vscode/vsce package"},"devDependencies":{"@types/node":"^22.0.0","@types/vscode":"^1.96.0","typescript":"^5.7.3","@vscode/vsce":"^3.2.1","esbuild":"^0.25.0"}}
+{
+  "name": "testlens-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "packageManager": "pnpm@10.17.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm --filter @aetherexa/testlens-core build && pnpm --filter testlens build",
+    "typecheck": "pnpm --filter @aetherexa/testlens-core typecheck && pnpm --filter testlens typecheck",
+    "test": "pnpm --filter @aetherexa/testlens-core test",
+    "test:coverage": "pnpm --filter @aetherexa/testlens-core test:coverage",
+    "check": "pnpm typecheck && pnpm test:coverage && pnpm build",
+    "quality": "pnpm check",
+    "package:vsix": "pnpm --filter testlens package:vsix"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.96.0",
+    "esbuild": "^0.25.9",
+    "@vscode/vsce": "^4.0.0"
+  }
+}

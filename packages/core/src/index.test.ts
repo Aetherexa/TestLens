@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {parseUnifiedDiff,parseLcov,parseIstanbul,analyzeGaps,detectFramework,suggestRelatedTests,mapTestDependencies} from '../packages/core/src/index.ts';
+import {parseUnifiedDiff,parseLcov,parseIstanbul,analyzeGaps,detectFramework,suggestRelatedTests,mapTestDependencies} from '../src/index.ts';
 test('diff identifies target-side added lines across hunks',()=>{
  const d='diff --git a/src/a.ts b/src/a.ts\n--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1,2 +1,3 @@\n context\n+added\n old\n@@ -8,1 +9,2 @@\n+new\n context';
  assert.deepEqual(parseUnifiedDiff(d),[{path:'src/a.ts',lines:[2,9]}]);

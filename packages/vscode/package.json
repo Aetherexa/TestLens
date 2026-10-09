@@ -1,0 +1,74 @@
+{
+  "name": "testlens",
+  "displayName": "Aetherexa TestLens",
+  "description": "Find unverified code changes and select relevant tests before shipping.",
+  "publisher": "aetherexa",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "main": "./dist/extension.cjs",
+  "categories": [
+    "Testing",
+    "Other"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    }
+  },
+  "activationEvents": [
+    "onView:testlens.findings",
+    "onCommand:testlens.analyze",
+    "onCommand:testlens.runRelated"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "testlens",
+          "title": "TestLens",
+          "icon": "resources/testlens.svg"
+        }
+      ]
+    },
+    "views": {
+      "testlens": [
+        {
+          "id": "testlens.findings",
+          "name": "Test Gaps"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "testlens.analyze",
+        "title": "TestLens: Analyze Workspace"
+      },
+      {
+        "command": "testlens.runRelated",
+        "title": "TestLens: Run Related Tests"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "vscode:prepublish": "pnpm build",
+    "package:vsix": "pnpm build && vsce package --no-dependencies --out ../../artifacts/testlens-0.1.0.vsix"
+  },
+  "devDependencies": {
+    "@aetherexa/testlens-core": "workspace:*",
+    "@types/vscode": "^1.96.0",
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.25.9",
+    "@vscode/vsce": "^4.0.0",
+    "typescript": "^5.9.3"
+  }
+}

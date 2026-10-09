@@ -1,16 +1,13 @@
-name: CI
+name: VS Code Package
 on:
-  push:
-    branches: [main, 'feat/**', 'fix/**', 'refactor/**']
-  pull_request:
-    branches: [main]
   workflow_dispatch:
+  push:
+    tags: ['vscode-v*']
 permissions:
   contents: read
 jobs:
-  quality:
+  package:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -19,12 +16,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: pnpm
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm check
       - run: pnpm package:vsix
       - uses: actions/upload-artifact@v4
         with:
-          name: testlens-vsix
+          name: testlens-vscode
           path: artifacts/*.vsix
           if-no-files-found: error
