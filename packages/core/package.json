@@ -9,10 +9,11 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --experimental-strip-types --test src/*.test.ts",
-    "test:coverage": "node --experimental-strip-types --experimental-test-coverage --test src/*.test.ts"
+    "test:coverage": "c8 --reporter=lcov --reporter=text --reports-dir=coverage node --experimental-strip-types --test src/*.test.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "c8": "^10.1.3"
   }
 }
