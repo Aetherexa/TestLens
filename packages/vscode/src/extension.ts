@@ -54,7 +54,7 @@ export function activate(ctx:vscode.ExtensionContext):void {
    }));
    reportPanel.onDidDispose(()=>{reportPanel=undefined;});
   }
-  if(latestReport)reportPanel.webview.html=renderReport(reportPanel.webview,latestReport);
+  reportPanel.webview.html=renderReport(reportPanel.webview,latestReport??{workspace:vscode.workspace.workspaceFolders?.[0]?.name??'No workspace',framework:'Unknown',changes:0,findings:[],tests:[],coverageSource:'Run analysis to load coverage evidence.',status:'Run Analyze Workspace to begin.'});
   reportPanel.reveal();
  };
  ctx.subscriptions.push(vscode.commands.registerCommand('testlens.openReport',openReport));
@@ -66,7 +66,7 @@ export function activate(ctx:vscode.ExtensionContext):void {
    const pkgText=await readOptional(vscode.Uri.joinPath(folder.uri,'package.json').fsPath);
    detected=detectFramework(pkgText?JSON.parse(pkgText):{});
    const diff=parseUnifiedDiff(await changedFiles(root));
-   if(!diff.length){provider.setItems([{label:'No modified tracked lines',detail:'Stage or modify tracked code to analyze.'}]);return;}
+   if(!diff.length){latestReport={workspace:folder.name,framework:detected,changes:0,findings:[],tests:[],coverageSource:'No changed source files were detected.',status:'No modified tracked lines. Stage or modify a tracked source file.'};provider.setItems([{label:'No modified tracked lines',detail:'Stage or modify tracked code to analyze.'}]);openReport();return;}
    const lcov=await readOptional(vscode.Uri.joinPath(folder.uri,'coverage','lcov.info').fsPath);
    const json=lcov?undefined:await readOptional(vscode.Uri.joinPath(folder.uri,'coverage','coverage-final.json').fsPath);
    const coverage=lcov?parseLcov(lcov):json?parseIstanbul(JSON.parse(json)):[];
