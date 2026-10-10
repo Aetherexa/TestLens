@@ -1,18 +1,22 @@
 # TestLens
 
-**See Beyond Test Coverage.**
+See Beyond Test Coverage. Local-first coverage gap analysis and related test discovery.
 
-TestLens is a local-first VS Code extension prototype for identifying code-coverage gaps in changed lines and suggesting related test files.
+## Structure
+- `packages/core`: analysis engine and unit tests
+- `packages/vscode`: VS Code extension and packaging
+- `.github/workflows`: pnpm quality, VSIX packaging, optional SonarCloud scanning
 
-## Capabilities
+## Development
+Node 22+, pnpm 10.17.1.
 
-- Parse Git unified diffs, LCOV and Istanbul coverage.
-- Distinguish verified coverage gaps from missing or ambiguous evidence.
-- Find potentially related Jest/Vitest tests via static import graphs and conservative filename heuristics.
-- Show analysis results in the VS Code sidebar and require approval before running selected tests.
+```bash
+corepack enable
+pnpm install
+pnpm check
+pnpm package:vsix
+```
 
-## Develop
+SonarCloud requires repository variables `SONAR_PROJECT_KEY`, `SONAR_ORGANIZATION` and secret `SONAR_TOKEN`. The workflow skips when `SONAR_PROJECT_KEY` is unset. Coverage LCOV export is being finalized; do not claim imported Sonar coverage until the report exists.
 
-Requires Node.js >=22.6. Run `npm install`, `npm run check`, `npm run build`, and `npm run package:vsix`.
-
-**Prototype limitations:** coverage snapshots may be stale; dependency selection is non-exhaustive; full extension-host integration and VSIX packaging have not been verified. Never treat a potential finding as proven missing tests.
+Test results and quality gates must be checked on the pull request. Test selection is heuristic and non-exhaustive.
