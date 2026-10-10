@@ -1,3 +1,4 @@
+import { renderReport, type ReportData } from './report.js';
 import * as vscode from 'vscode';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
@@ -30,6 +31,33 @@ async function listTestFiles(root:vscode.Uri):Promise<string[]>{
 export function activate(ctx:vscode.ExtensionContext):void {
  const provider=new GapProvider();ctx.subscriptions.push(vscode.window.registerTreeDataProvider('testlens.findings',provider));
  let recent:SuggestedTest[]=[];let detected:'jest'|'vitest'|'unknown'='unknown';
+ let reportPanel:vscode.WebviewPanel|undefined;
+ let latestReport:ReportData|undefined;
+ const openReport=():void=>{
+  if(!reportPanel){
+   reportPanel=vscode.window.createWebviewPanel('testlens.report','TestLens — Test Intelligence',vscode.ViewColumn.Active,{enableScripts:true,retainContextWhenHidden:true});
+   ctx.subscriptions.push(reportPanel.webview.onDidReceiveMessage(async (message:unknown)=>{
+    if(!message||typeof message!=='object')return;
+    const msg=message as {type?:string;path?:string;line?:number};
+    if(msg.type==='analyze')await vscode.commands.executeCommand('testlens.analyze');
+    if(msg.type==='runTests')await vscode.commands.executeCommand('testlens.runRelated');
+    if(msg.type==='openFile'&&msg.path){
+     const folder=vscode.workspace.workspaceFolders?.[0];
+     if(!folder)return;
+     const path=await import('node:path');
+     const resolved=path.resolve(folder.uri.fsPath,msg.path);
+     const relative=path.relative(folder.uri.fsPath,resolved);
+     if(relative.startsWith('..')||path.isAbsolute(relative))return;
+     const document=await vscode.workspace.openTextDocument(vscode.Uri.file(resolved));
+     await vscode.window.showTextDocument(document,{preview:true,selection:new vscode.Range(Math.max(0,(msg.line??1)-1),0,Math.max(0,(msg.line??1)-1),0)});
+    }
+   }));
+   reportPanel.onDidDispose(()=>{reportPanel=undefined;});
+  }
+  if(latestReport)reportPanel.webview.html=renderReport(reportPanel.webview,latestReport);
+  reportPanel.reveal();
+ };
+ ctx.subscriptions.push(vscode.commands.registerCommand('testlens.openReport',openReport));
  ctx.subscriptions.push(vscode.commands.registerCommand('testlens.analyze',async()=>{
   const folder=vscode.workspace.workspaceFolders?.[0];if(!folder){vscode.window.showWarningMessage('TestLens needs an open workspace.');return;}
   if(!vscode.workspace.isTrusted){vscode.window.showWarningMessage('Trust the workspace before running TestLens analysis.');return;}
@@ -48,13 +76,16 @@ export function activate(ctx:vscode.ExtensionContext):void {
    const sources:Record<string,string>={};
    for(const uri of workspaceFiles) {const relative=vscode.workspace.asRelativePath(uri,false).replace(/\\/g,'/');const content=await readOptional(uri.fsPath);if(content!==undefined)sources[relative]=content;}
    recent=mapTestDependencies(diff.map(d=>d.path),sources,candidates);
+   latestReport={workspace:folder.name,framework:detected,changes:diff.length,findings,tests:recent,
+    coverageSource:lcov?'LCOV snapshot (coverage/lcov.info)':json?'Istanbul JSON snapshot (coverage/coverage-final.json)':'No coverage report was found.',
+    status:`Analyzed ${diff.length} changed source files.`};
    const items:ViewItem[]=[
     {label:'Coverage evidence',detail:lcov||json?'Coverage snapshot may be stale: regenerate after changes before treating findings as current.':'No coverage report found.'},
     {label:`${findings.filter(f=>f.evidence==='verified').length} verified coverage findings`,detail:'Based on supplied local coverage report'},
     {label:`${recent.length} possible related test files`,detail:'Static import / filename heuristic — may miss dependencies'},
     ...findings.map(f=>({label:`${f.evidence.toUpperCase()}: ${f.kind}`,detail:`${f.file}${f.line?':'+f.line:''} — ${f.message}`,file:vscode.Uri.joinPath(folder.uri,f.file).fsPath,line:f.line})),
     ...recent.map(r=>({label:`Possible test: ${r.path}`,detail:r.reason,file:vscode.Uri.joinPath(folder.uri,r.path).fsPath}))
-   ];provider.setItems(items);
+   ];provider.setItems(items);openReport();
    void vscode.window.showInformationMessage(`TestLens: ${findings.length} coverage findings, ${recent.length} possible related tests (${detected}).`);
   }catch(err){provider.setItems([{label:'Analysis failed',detail:String(err)}]);void vscode.window.showErrorMessage(`TestLens analysis failed: ${String(err)}`);}
  }));
