@@ -10,4 +10,4 @@ async function main() {
   assert.ok(commands.includes('testlens.runRelated'), 'Run related tests command is registered');
   console.log('TestLens extension host smoke: PASS');
 }
-module.exports = main;
+module.exports.run = main;
