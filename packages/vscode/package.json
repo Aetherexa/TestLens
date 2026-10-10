@@ -26,7 +26,8 @@
   "activationEvents": [
     "onView:testlens.findings",
     "onCommand:testlens.analyze",
-    "onCommand:testlens.runRelated"
+    "onCommand:testlens.runRelated",
+    "onCommand:testlens.openReport"
   ],
   "contributes": {
     "viewsContainers": {
@@ -54,6 +55,10 @@
       {
         "command": "testlens.runRelated",
         "title": "TestLens: Run Related Tests"
+      },
+      {
+        "command": "testlens.openReport",
+        "title": "TestLens: Open Intelligence Dashboard"
       }
     ]
   },
