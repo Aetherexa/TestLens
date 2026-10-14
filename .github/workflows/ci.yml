@@ -29,3 +29,45 @@ jobs:
           name: testlens-vsix
           path: artifacts/*.vsix
           if-no-files-found: error
+
+  windows-compatibility:
+    name: Windows Build and VSIX
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install workspace dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Typecheck and core tests
+        run: pnpm typecheck && pnpm test:coverage
+      - name: Build extension using Windows paths
+        run: pnpm build
+      - name: Package marketplace VSIX
+        run: pnpm package:vsix
+      - name: Verify packaged VSIX
+        shell: pwsh
+        run: |
+          $package = "artifacts/testlens-0.1.0.vsix"
+          if (-not (Test-Path $package)) {
+            throw "VSIX artifact missing at $package"
+          }
+          $size = (Get-Item $package).Length
+          if ($size -le 0) {
+            throw "VSIX artifact is empty"
+          }
+          Write-Host "Verified $package ($size bytes)"
+      - name: Upload Windows VSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: testlens-windows-vsix
+          path: artifacts/*.vsix
+          if-no-files-found: error
