@@ -9,8 +9,10 @@ permissions:
   contents: read
 jobs:
   sonar:
-    if: ${{ vars.SONAR_PROJECT_KEY != '' }}
+    name: SonarCloud Quality Gate
+    if: ${{ vars.SONAR_PROJECT_KEY != '' && vars.SONAR_ORGANIZATION != '' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,12 +23,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm test:coverage
-      - uses: SonarSource/sonarqube-scan-action@v6
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Generate tested-source coverage
+        run: pnpm test:coverage
+      - name: Validate coverage report
+        shell: bash
+        run: |
+          test -s packages/core/coverage/lcov.info || { echo "::error::Coverage report missing or empty"; exit 1; }
+      - name: Analyze and await SonarCloud quality gate
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
             -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
             -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=300
